@@ -1,0 +1,11 @@
+{
+  "name": "figma-test-plugin",
+  "id": "1213593822671158860",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": [
+    "figma"
+  ]
+}
