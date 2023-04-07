@@ -126,10 +126,33 @@ async function runPlugin() {
     figma.closePlugin("Please select a single element");
     return;
   }
+  let name, initialX, initialY, finalX, finalY;
   let selectedFrame = selected[0];
   if (selectedFrame.type === "FRAME") {
+    selectedFrame.reactions.forEach((reaction) => {
+      console.log('reaction: ' + reaction)
+      if (reaction.action.type === "NODE" && reaction.action.destinationId) {
+        const destinationNode = figma.getNodeById(reaction.action.destinationId);
+        for (const child of selectedFrame.children) {
+          name = child.name;
+          initialX = child.x
+          initialY = child.y
+          console.log('before : ', child.x, child.y)
+          for (const child of destinationNode.children) {
+            if (child.name === name) {
+              console.log('name : ', name)
+              console.log('destination name : ', child.name)
+              console.log('after : ', child.x, child.y)
+              finalX = child.x
+              finalY = child.y
+            }
+          }
+        }
+      }
+    })
     console.log(selectedFrame.type);
     let parentStyle = {
+      id: selectedFrame.id,
       width: selectedFrame.width,
       height: selectedFrame.height,
       x: selectedFrame.x,
@@ -155,6 +178,7 @@ async function runPlugin() {
       if (child.type === "RECTANGLE") {
         styles = {
           // bg: child.fills[0].color,
+          class: child.name,
           type: child.type,
           bg: `rgba(${child.fills[0].color.r * 255},${child.fills[0].color.g * 255},${child.fills[0].color.b * 255},${child.fills[0].opacity})`,
           width: child.width,
@@ -165,6 +189,7 @@ async function runPlugin() {
         };
       } else if (child.type === "TEXT") {
         styles = {
+          class: child.name,
           // bg: child.fills[0].color,
           type: child.type,
           bg: `rgba(${child.fills[0].color.r * 255},${child.fills[0].color.g * 255},${child.fills[0].color.b * 255},${child.fills[0].opacity})`,
@@ -182,6 +207,7 @@ async function runPlugin() {
         };
       } else if (child.type === "FRAME") {
         styles = {
+          class: child.name,
           // bg: child.backgrounds[0].color,
           type: child.type,
           bg: `rgba(${child.backgrounds[0].color.r * 255},${child.backgrounds[0].color.g * 255},${child.backgrounds[0].color.b * 255},${child.backgrounds[0].opacity})`,
@@ -193,6 +219,7 @@ async function runPlugin() {
         };
       } else {
         styles = {
+          class: child.name,
           // bg: child.fills[0].color,
           type: child.type,
           bg: `rgba(${child.fills[0].color.r * 255},${child.fills[0].color.g * 255},${child.fills[0].color.b * 255},${child.fills[0].opacity})`,
@@ -208,9 +235,17 @@ async function runPlugin() {
     }
 
     let childElementsHtml = "";
-    let childElementsCss = "";
+    let childElementsCss = `@keyframes move {
+      from {
+        transform: translateX(0px) translateY(0px);
+      }
+      to {
+        transform: translateX(${finalX - initialX}px) translateY(${finalY - initialY}px);
+      }
+    }
+    .${name} { animation: move 1s ease-out 0s forwards;}`;
     for (const child of childElements) {
-      childElementsHtml += `<div style="background-color: ${child.type == 'TEXT' ? 'transparent' : child.bg}; border-radius: ${child.radius}px; color: ${child.type == 'TEXT' ? child.bg : ''}; width: ${child.width}px; height: ${child.height}px; position: absolute; top: ${child.posy}px; left: ${child.posx}px; color: ${child.bg}; font-size: ${child.size}px; font-weight: ${child.weight}; text-align: ${child.align}; font-family: ${child.font}">${(child.type == 'TEXT') ? child.content : ''}</div>`;
+      childElementsHtml += `<div class=${child.class} style="background-color: ${child.type == 'TEXT' ? 'transparent' : child.bg}; border-radius: ${child.radius}px; color: ${child.type == 'TEXT' ? child.bg : ''}; width: ${child.width}px; height: ${child.height}px; position: absolute; top: ${child.posy}px; left: ${child.posx}px; color: ${child.bg}; font-size: ${child.size}px; font-weight: ${child.weight}; text-align: ${child.align}; font-family: ${child.font}">${(child.type == 'TEXT') ? child.content : ''}</div>`;
       // childElementsCss += `div {background-color: ${child.bg};}`;
     }
 
@@ -226,5 +261,6 @@ async function runPlugin() {
   figma.closePlugin();
   return;
 }
+
 
 runPlugin();
