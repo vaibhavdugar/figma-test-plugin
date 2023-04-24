@@ -11,8 +11,10 @@
   "license": "",
   "devDependencies": {
     "@figma/plugin-typings": "*",
+    "@types/node": "^18.15.11",
     "typescript": "*"
   },
   "dependencies": {
+    "blob": "^0.1.0"
   }
 }
